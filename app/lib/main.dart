@@ -1,15 +1,13 @@
-import 'dart:io';
-import 'dart:html' as html; // For web platform
 import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:path_provider/path_provider.dart'; // For mobile platforms
-import 'package:path/path.dart'
-    as p; // Import the path package for file path operations
+import 'package:path/path.dart';
 import 'package:app/navBar.dart';
 import 'package:app/savedRecipes.dart';
 import 'package:app/recipe.dart';
 import 'ingredientsPage.dart';
+import 'package:app/textStyles.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,7 +26,22 @@ class MainApp extends StatelessWidget {
         '/camera': (context) => const CameraPage(),
         '/savedRecipes': (context) => const SavedRecipes(),
         '/ingredients': (context) => const ingredientsPage(),
-        '/recipeInfo': (context) => const recipeInfo(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == '/recipeInfo') {
+          final args = settings.arguments as Map<String, dynamic>;
+
+          return MaterialPageRoute(
+            builder: (context) {
+              return recipeInfo(
+                recipeName: args['recipeName'],
+                recipeSteps: args['recipeSteps'],
+                Ingredients: args['Ingredients'],
+              );
+            },
+          );
+        }
+        return null; // Add other routes here as needed
       },
     );
   }
@@ -43,48 +56,40 @@ class HomePage extends StatelessWidget {
         title: const Text('Home'),
         automaticallyImplyLeading: false,
       ),
-      body: Center(
-        child: Container(
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage(''), // Use AssetImage for local images
-              fit: BoxFit.cover, // Ensure the image covers the entire container
-            ),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('imgs/homebg.jpg'),
+            // Use AssetImage for local images
+            fit: BoxFit.cover, // Ensure the image covers the entire container
           ),
+        ),
+        child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               Text(
                 'Welcome Back!',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black54,
-                ),
+                style: h1(),
               ),
               Text(
                 'Ready to Cook?',
-                style: TextStyle(fontSize: 20, color: Colors.black54),
+                style: h2(),
               ),
               Text.rich(
                 TextSpan(
                   children: [
                     TextSpan(
                       text: 'To make something delicious:\n',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black54,
-                      ),
+                      style: h1(),
                     ),
                     TextSpan(
                       text: '1. Scan Pantry\n'
-                          '2. Choose one of many delicious recipes\n'
+                          '2. Choose a delicious recipe\n'
                           '3. Enjoy!\n',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.black54,
-                      ),
+                      style: h3(),
                     ),
                   ],
                 ),
@@ -130,6 +135,7 @@ class HomePage extends StatelessWidget {
   }
 }
 
+
 class CameraPage extends StatefulWidget {
   const CameraPage({super.key});
 
@@ -174,41 +180,16 @@ class _CameraPageState extends State<CameraPage> {
       // Capture the image
       final image = await _controller!.takePicture();
 
-      // Save image based on platform
-      if (kIsWeb) {
-        // Handle image saving on the web
-        final bytes = await image.readAsBytes();
-        final blob = html.Blob([bytes]);
-        final url = html.Url.createObjectUrlFromBlob(blob);
-        final anchor = html.AnchorElement(href: url)
-          ..setAttribute("download",
-              "pictures/captured_image.png") // Save to "pictures" folder
-          ..click();
-        html.Url.revokeObjectUrl(url);
+      // Get the directory to save the image
+      final imagePath =
+          'app/web/picture_${DateTime.now().millisecondsSinceEpoch}.png';
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Image saved to pictures folder in downloads')),
-        );
-      } else {
-        // Handle image saving on mobile platforms (iOS/Android)
-        String _directory = '';
-        if (Platform.isIOS) {
-          _directory = (await getApplicationSupportDirectory()).path;
-        } else {
-          _directory = '/storage/emulated/0/DCIM';
-        }
+      // Copy the captured image to the desired location
+      await image.saveTo(imagePath);
 
-        final fileName =
-            'captured_${DateTime.now().millisecondsSinceEpoch}.png';
-        final filePath = p.join(_directory, fileName);
-        final imagePath = await File(filePath).create();
-        await imagePath.writeAsBytes(await image.readAsBytes());
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Image saved at: $filePath')),
-        );
-      }
+      ScaffoldMessenger.of(context as BuildContext).showSnackBar(
+        SnackBar(content: Text('Picture saved to $imagePath')),
+      );
     } catch (e) {
       print('Error: $e');
     }
@@ -229,16 +210,19 @@ class _CameraPageState extends State<CameraPage> {
                 Expanded(
                   child: CameraPreview(_controller!),
                 ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton(
+                    onPressed: _takePicture,
+                    child: const Text('Take Picture'),
+                  ),
+                ),
               ],
             );
           } else {
             return const Center(child: CircularProgressIndicator());
           }
         },
-      ),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.camera),
-        onPressed: _takePicture,
       ),
     );
   }

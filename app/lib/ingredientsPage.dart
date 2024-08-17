@@ -13,11 +13,21 @@ class _ingredientsPageState extends State<ingredientsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          Ingredient(ingredientName: 'chicken'),
-          Ingredient(ingredientName: 'flour'),
-        ],
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('imgs/ingredientsbg.jpg'),
+            fit: BoxFit.cover, // Ensure the image covers the entire container
+          ),
+        ),
+        child: Column(
+          children: [
+            Ingredient(ingredientName: 'chicken'),
+            Ingredient(ingredientName: 'flour'),
+          ],
+        ),
       ),
       appBar: AppBar(
         title: Text('Ingredients'),
