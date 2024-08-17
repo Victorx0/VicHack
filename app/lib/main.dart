@@ -5,6 +5,7 @@ import 'package:app/navBar.dart';
 import 'package:app/savedRecipes.dart';
 import 'package:app/recipe.dart';
 import 'ingredientsPage.dart';
+import 'package:app/textStyles.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,7 +24,22 @@ class MainApp extends StatelessWidget {
         '/camera': (context) => const CameraPage(),
         '/savedRecipes': (context) => const SavedRecipes(),
         '/ingredients': (context) => const ingredientsPage(),
-        '/recipeInfo': (context) => const recipeInfo(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == '/recipeInfo') {
+          final args = settings.arguments as Map<String, dynamic>;
+
+          return MaterialPageRoute(
+            builder: (context) {
+              return recipeInfo(
+                recipeName: args['recipeName'],
+                recipeSteps: args['recipeSteps'],
+                Ingredients: args['Ingredients'],
+              );
+            },
+          );
+        }
+        return null; // Add other routes here as needed
       },
     );
   }
@@ -38,55 +54,45 @@ class HomePage extends StatelessWidget {
         title: const Text('Home'),
         automaticallyImplyLeading: false,
       ),
-      body: Center(
-        child: Container(
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage(''), // Use AssetImage for local images
-              fit: BoxFit.cover, // Ensure the image covers the entire container
-            ),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('imgs/homebg.jpg'),
+            // Use AssetImage for local images
+            fit: BoxFit.cover, // Ensure the image covers the entire container
           ),
+        ),
+        child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               Text(
                 'Welcome Back!',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black54,
-                ),
+                style: h1(),
               ),
               Text(
                 'Ready to Cook?',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: Colors.black54
-                ),
+                style: h2(),
               ),
               Text.rich(
                 TextSpan(
                   children: [
                     TextSpan(
                       text: 'To make something delicious:\n',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black54,
-                      ),
+                      style: h1(),
                     ),
                     TextSpan(
                       text: '1. Scan Pantry\n'
-                          '2. Choose one of many delicious recipes\n'
+                          '2. Choose a delicious recipe\n'
                           '3. Enjoy!\n',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.black54,
-                      ),
+                      style: h3(),
                     ),
                   ],
                 ),
-                textAlign: TextAlign.left, // Ensure the entire text is aligned to the left
+                textAlign: TextAlign
+                    .left, // Ensure the entire text is aligned to the left
               ),
               Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -110,7 +116,7 @@ class HomePage extends StatelessWidget {
                       Navigator.pushNamed(context, '/camera');
                     },
                     child: const Text(
-                        'Scan Pantry',
+                      'Scan Pantry',
                       style: TextStyle(
                         fontSize: 20,
                       ),
