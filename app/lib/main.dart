@@ -1,6 +1,11 @@
+import 'dart:io';
+import 'dart:html' as html; // For web platform
+import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:path_provider/path_provider.dart'; // For mobile platforms
+import 'package:path/path.dart'
+    as p; // Import the path package for file path operations
 import 'package:app/navBar.dart';
 import 'package:app/savedRecipes.dart';
 import 'package:app/recipe.dart';
@@ -177,16 +182,41 @@ class _CameraPageState extends State<CameraPage> {
       // Capture the image
       final image = await _controller!.takePicture();
 
-      // Get the directory to save the image
-      final imagePath =
-          'app/web/picture_${DateTime.now().millisecondsSinceEpoch}.png';
+      // Save image based on platform
+      if (kIsWeb) {
+        // Handle image saving on the web
+        final bytes = await image.readAsBytes();
+        final blob = html.Blob([bytes]);
+        final url = html.Url.createObjectUrlFromBlob(blob);
+        final anchor = html.AnchorElement(href: url)
+          ..setAttribute("download",
+              "pictures/captured_image.png") // Save to "pictures" folder
+          ..click();
+        html.Url.revokeObjectUrl(url);
 
-      // Copy the captured image to the desired location
-      await image.saveTo(imagePath);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Image saved to pictures folder in downloads')),
+        );
+      } else {
+        // Handle image saving on mobile platforms (iOS/Android)
+        String _directory = '';
+        if (Platform.isIOS) {
+          _directory = (await getApplicationSupportDirectory()).path;
+        } else {
+          _directory = '/storage/emulated/0/DCIM';
+        }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Picture saved to $imagePath')),
-      );
+        final fileName =
+            'captured_${DateTime.now().millisecondsSinceEpoch}.png';
+        final filePath = p.join(_directory, fileName);
+        final imagePath = await File(filePath).create();
+        await imagePath.writeAsBytes(await image.readAsBytes());
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Image saved at: $filePath')),
+        );
+      }
     } catch (e) {
       print('Error: $e');
     }
@@ -207,19 +237,16 @@ class _CameraPageState extends State<CameraPage> {
                 Expanded(
                   child: CameraPreview(_controller!),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton(
-                    onPressed: _takePicture,
-                    child: const Text('Take Picture'),
-                  ),
-                ),
               ],
             );
           } else {
             return const Center(child: CircularProgressIndicator());
           }
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.camera),
+        onPressed: _takePicture,
       ),
     );
   }
