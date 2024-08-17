@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:app/navBar.dart';
+import 'package:app/savedRecipes.dart';
+import 'package:app/recipe.dart';
+import 'ingredientsPage.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,7 +19,11 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       home: const HomePage(),
       routes: {
+        '/home': (context) => const HomePage(),
         '/camera': (context) => const CameraPage(),
+        '/savedRecipes': (context) => const SavedRecipes(),
+        '/ingredients': (context) => const ingredientsPage(),
+        '/recipeInfo': (context) => const recipeInfo(),
       },
     );
   }
@@ -23,21 +31,98 @@ class MainApp extends StatelessWidget {
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Welcome!'),
+        title: const Text('Home'),
+        automaticallyImplyLeading: false,
       ),
       body: Center(
-        child: ElevatedButton(
-          onPressed: () {
-            Navigator.pushNamed(context, '/camera');
-          },
-          child: const Text('Scan Pantry'),
+        child: Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage(''), // Use AssetImage for local images
+              fit: BoxFit.cover, // Ensure the image covers the entire container
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Text(
+                'Welcome Back!',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black54,
+                ),
+              ),
+              Text(
+                'Ready to Cook?',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.black54
+                ),
+              ),
+              Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: 'To make something delicious:\n',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black54,
+                      ),
+                    ),
+                    TextSpan(
+                      text: '1. Scan Pantry\n'
+                          '2. Choose one of many delicious recipes\n'
+                          '3. Enjoy!\n',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.left, // Ensure the entire text is aligned to the left
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color.fromRGBO(255, 215, 0, 0.6),
+                        spreadRadius: 4, // Spread of the glow
+                        blurRadius: 20, // Blur radius
+                        offset: Offset(0, 0), // Position of the shadow
+                      ),
+                    ],
+                  ),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color.fromRGBO(255, 215, 0, 0.8),
+                      foregroundColor: Colors.black54,
+                    ),
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/camera');
+                    },
+                    child: const Text(
+                        'Scan Pantry',
+                      style: TextStyle(
+                        fontSize: 20,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
+      bottomNavigationBar: BottomNav(context, 1),
     );
   }
 }
