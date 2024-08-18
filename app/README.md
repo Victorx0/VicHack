@@ -1,3 +1,8 @@
-# app
+# How to run
 
-A new Flutter project.
+Use 
+```
+flutter run
+```
+
+to start the application!
